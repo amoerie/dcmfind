@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using CommandLine;
 using Dicom;
 
@@ -76,15 +77,9 @@ namespace dcmfind
                 return;
             }
 
-            DicomTag queryDicomTag;
-            try
+            DicomTag queryDicomTag = ToDicomTag(queryParts[0]);
+            if (queryDicomTag == null)
             {
-                queryDicomTag = DicomTag.Parse(queryParts[0]);
-            }
-            catch (DicomDataException e)
-            {
-                Console.Error.WriteLine($"Invalid DICOM tag in query '{query}': " + e.Message);
-                Console.Error.WriteLine(e);
                 return;
             }
 
@@ -98,6 +93,31 @@ namespace dcmfind
         private static IEnumerable<string> Files(string directory, string filePattern, bool recursive)
         {
             return Directory.EnumerateFiles(directory, filePattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+        }
+
+        private static DicomTag ToDicomTag(string dicomTag)
+        {
+            try
+            {
+                if(dicomTag[0] == '(' || char.IsDigit(dicomTag[0]))
+                    return DicomTag.Parse(dicomTag);
+
+                var field = typeof(DicomTag).GetFields(BindingFlags.Static | BindingFlags.Public)
+                    .Where(f => f.FieldType == typeof(DicomTag))
+                    .FirstOrDefault(f => string.Equals(f.Name, dicomTag));
+                if (field != null)
+                {
+                    return (DicomTag) field.GetValue(null);
+                }
+
+                return DicomTag.Parse(dicomTag);
+            }
+            catch (DicomDataException e)
+            {
+                Console.Error.WriteLine($"Invalid DICOM tag in query '{dicomTag}': " + e.Message);
+                Console.Error.WriteLine(e);
+                return null;
+            }
         }
 
         private static DicomFile ToDicomFile(string file)
