@@ -140,8 +140,11 @@ namespace dcmfind
             {
                 try
                 {
+                    
                     var queryDicomTagValue = dicomFile.Dataset.GetString(queryDicomTag);
-                    return string.Equals(queryDicomTagValue, queryValue, StringComparison.OrdinalIgnoreCase);
+                    var matches = string.Equals(queryDicomTagValue, queryValue, StringComparison.OrdinalIgnoreCase);
+                    //Console.WriteLine($"{queryDicomTagValue} matches {queryValue} ? {matches}");
+                    return matches;
                 }
                 catch
                 {
