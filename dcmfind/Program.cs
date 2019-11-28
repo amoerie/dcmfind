@@ -169,8 +169,5 @@ namespace dcmfind
                 .Take(limit)
                 .Select(FileName);
         }
-        
-        
-        
     }
 }
