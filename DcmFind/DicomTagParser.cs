@@ -7,7 +7,7 @@ namespace DcmFind
 {
     public static class DicomTagParser
     {
-        public static bool TryParse(string dicomTagAsString, out DicomTag dicomTag)
+        public static bool TryParse(string dicomTagAsString, out DicomTag? dicomTag)
         {
             try
             {
@@ -22,7 +22,7 @@ namespace DcmFind
                     .FirstOrDefault(f => string.Equals(f.Name, dicomTagAsString));
                 if (field != null)
                 {
-                    dicomTag = (DicomTag) field.GetValue(null);
+                    dicomTag = (DicomTag?) field.GetValue(null);
                     return true;
                 }
 

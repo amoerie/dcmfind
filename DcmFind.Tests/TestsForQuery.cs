@@ -46,6 +46,19 @@ namespace DcmFind.Tests
                 
                 query.Matches(_dicomDataset).Should().BeFalse();
             }
+            
+            [Theory]
+            [InlineData("%apple")]
+            [InlineData("%Apple")]
+            [InlineData("Pine%")]
+            [InlineData("pine%")]
+            [InlineData("Pine%apple")]
+            public void ShouldMatchWhenValuesMatchesWildcardInBeginning(string value)
+            {
+                var query = new EqualsQuery(DicomTag.AccessionNumber, value);
+
+                query.Matches(_dicomDataset).Should().BeTrue();
+            }
         }
 
         public class TestsForLowerThanQuery : TestsForQuery

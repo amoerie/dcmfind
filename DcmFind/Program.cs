@@ -16,10 +16,10 @@ namespace DcmFind
         {
             [Option('d', "directory", Default = ".", HelpText = "Search for *.dcm files in this directory")]
             
-            public string Directory { get; set; }
+            public string? Directory { get; set; }
             
             [Option('f', "filePattern", Default = "*.dcm", HelpText = "Only query files that satisfy this file pattern")]
-            public string FilePattern { get; set; }
+            public string? FilePattern { get; set; }
             
             [Option('r', "recursive", Default = true, HelpText = "Search recursively in nested directories")]
             public bool Recursive { get; set; }
@@ -27,8 +27,8 @@ namespace DcmFind
             [Option('l', "limit", Default = 100, HelpText = "Limit results and stop finding after this many results")]
             public int Limit { get; set; }
             
-            [Option(shortName: 'q', longName: "query", Default = "", Required = true, HelpText = "The query that should be applied")]
-            public string Query { get; set; }
+            [Option(shortName: 'q', longName: "query", Default = "", Separator = ',', Min = 1, HelpText = "The query that should be applied")]
+            public IEnumerable<string>? Query { get; set; }
         }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
         // ReSharper restore MemberCanBePrivate.Global
@@ -53,6 +53,12 @@ namespace DcmFind
         private static void Query(Options options)
         {
             var directory = new DirectoryInfo(options.Directory).FullName;
+            var filePattern = options.FilePattern;
+            var recursive = options.Recursive;
+            var query = options.Query;
+            var limit = options.Limit;
+            if (filePattern == null || query == null)
+                return;
             
             if (!Directory.Exists(directory))
             {
@@ -60,8 +66,7 @@ namespace DcmFind
                 return;
             }
 
-            var filePattern = options.FilePattern;
-            var recursive = options.Recursive;
+            
             var files = Files(directory, filePattern, recursive);
             // ReSharper disable PossibleMultipleEnumeration
             if (!files.Any())
@@ -70,13 +75,19 @@ namespace DcmFind
                 return;
             }
 
-            if (!QueryParser.TryParse(options.Query, out var query))
+            var queries = new List<IQuery>();
+            foreach (var q in options.Query ?? Array.Empty<string>())
             {
-                Console.Error.WriteLine($"Invalid query: {query}");
-                return;
+                if (!QueryParser.TryParse(q, out var parsedQuery) || parsedQuery == null)
+                {
+                    Console.Error.WriteLine($"Invalid query: {query}");
+                    return;
+                }
+
+                queries.Add(parsedQuery);
             }
 
-            foreach(var result in Results(files, query, options.Limit))
+            foreach(var result in Results(files, queries, limit))
                 Console.WriteLine(result);
             // ReSharper restore PossibleMultipleEnumeration
         }
@@ -86,7 +97,7 @@ namespace DcmFind
             return Directory.EnumerateFiles(directory, filePattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
         }
 
-        private static DicomFile ToDicomFile(string file)
+        private static DicomFile? ToDicomFile(string file)
         {
             try
             {
@@ -100,24 +111,14 @@ namespace DcmFind
             }
         }
         
-        private static bool NotNull(DicomFile dicomFile)
-        {
-            return dicomFile != null;
-        }
-        
-        private static string FileName(DicomFile dicomFile)
-        {
-            return dicomFile.File.Name;
-        }
-
-        private static IEnumerable<string> Results(IEnumerable<string> files, IQuery query, int limit)
+        private static IEnumerable<string> Results(IEnumerable<string> files, List<IQuery> queries, int limit)
         {
             return files
                 .Select(ToDicomFile)
-                .Where(NotNull)
-                .Where(f => query.Matches(f.Dataset))
+                .Where(f => f != null && queries.All(q => q.Matches(f.Dataset)))
                 .Take(limit)
-                .Select(FileName);
+                .Select(f => f?.File?.Name)
+                .Where(fileName => fileName != null);
         }
     }
 }

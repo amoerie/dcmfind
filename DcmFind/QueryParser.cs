@@ -7,7 +7,7 @@ namespace DcmFind
     {
         private static readonly string[] SupportedOperators = {"<=", ">=", "=", "<", ">" };
 
-        public static bool TryParse(string queryAsString, out IQuery query)
+        public static bool TryParse(string queryAsString, out IQuery? query)
         {
             query = null;
             
@@ -29,7 +29,7 @@ namespace DcmFind
 
             var @operator = matchedOperator.Operator;
             var dicomTagAsString = queryAsString.Substring(0, matchedOperator.Index);
-            if (!DicomTagParser.TryParse(dicomTagAsString, out var dicomTag))
+            if (!DicomTagParser.TryParse(dicomTagAsString, out var dicomTag) || dicomTag == null)
             {
                 return false;
             }

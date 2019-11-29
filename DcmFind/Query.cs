@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Dicom;
 
 namespace DcmFind
@@ -17,8 +18,9 @@ namespace DcmFind
         {
             if (dicomTag == null) throw new ArgumentNullException(nameof(dicomTag));
             if (value == null) throw new ArgumentNullException(nameof(value));
-
-            _predicate = dicomDataset => dicomDataset.TryGetString(dicomTag, out var dicomTagValue) && string.Equals(dicomTagValue, value, StringComparison.OrdinalIgnoreCase);
+            var pattern = $"^{Regex.Escape(value).Replace("%", ".*")}$";
+            var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            _predicate = dicomDataset => dicomDataset.TryGetString(dicomTag, out var dicomTagValue) && regex.IsMatch(dicomTagValue);
         }
 
         public bool Matches(DicomDataset dicomDataset)
