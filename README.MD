@@ -25,6 +25,7 @@ Options
 
 Query is the only required parameter, and supports the following syntax:
 
+```
 --query "(0008,0050)=abc"
 --query "AccessionNumber=abc"
 --query "StudyDate>=2020-09-08"
@@ -32,3 +33,4 @@ Query is the only required parameter, and supports the following syntax:
 --query "StudyDate<2020-09-08"
 --query "StudyDate<=2020-09-08"
 --query "AccessionNumber!=abc"
+```
