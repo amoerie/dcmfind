@@ -94,7 +94,14 @@ namespace DcmFind
 
         private static IEnumerable<string> Files(string directory, string filePattern, bool recursive)
         {
-            return Directory.EnumerateFiles(directory, filePattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = recursive,
+                MatchCasing = MatchCasing.CaseInsensitive,
+                MatchType = MatchType.Simple,
+            };
+            return Directory.EnumerateFiles(directory, filePattern, enumerationOptions);
         }
 
         private static DicomFile? ToDicomFile(string file)

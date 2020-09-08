@@ -1,2 +1,2 @@
-dotnet pack ./DcmFind/DcmFind.csproj --configuration Release --include-source
+dotnet pack ./DcmFind/DcmFind.csproj --configuration Release
 pause
