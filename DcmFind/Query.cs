@@ -20,7 +20,26 @@ namespace DcmFind
             if (value == null) throw new ArgumentNullException(nameof(value));
             var pattern = $"^{Regex.Escape(value).Replace("%", ".*")}$";
             var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
-            _predicate = dicomDataset => dicomDataset.TryGetString(dicomTag, out var dicomTagValue) && regex.IsMatch(dicomTagValue);
+            _predicate = dicomDataset => regex.IsMatch(dicomDataset.GetValueOrDefault(dicomTag, 0, ""));
+        }
+
+        public bool Matches(DicomDataset dicomDataset)
+        {
+            return _predicate(dicomDataset);
+        }
+    }
+    
+    public class NotEqualsQuery : IQuery
+    {
+        private readonly Func<DicomDataset, bool> _predicate;
+
+        public NotEqualsQuery(DicomTag dicomTag, string value)
+        {
+            if (dicomTag == null) throw new ArgumentNullException(nameof(dicomTag));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+            var pattern = $"^{Regex.Escape(value).Replace("%", ".*")}$";
+            var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            _predicate = dicomDataset => !regex.IsMatch(dicomDataset.GetValueOrDefault(dicomTag, 0, ""));
         }
 
         public bool Matches(DicomDataset dicomDataset)

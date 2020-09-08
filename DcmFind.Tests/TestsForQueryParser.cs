@@ -65,5 +65,12 @@ namespace DcmFind.Tests
             QueryParser.TryParse("AccessionNumber<Pineapple", out var query).Should().BeTrue();
             query.Should().BeOfType<LowerThanQuery>();
         }
+        
+        [Fact]
+        public void ShouldReturnNotEqualsQuery()
+        {
+            QueryParser.TryParse("AccessionNumber!=\"\"", out var query).Should().BeTrue();
+            query.Should().BeOfType<NotEqualsQuery>();
+        }
     }
 }
