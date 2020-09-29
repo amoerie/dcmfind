@@ -7,6 +7,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DD007457-3C66-4109-9531-4740F0327D5A}"
 ProjectSection(SolutionItems) = preProject
 	README.MD = README.MD
+	LICENSE = LICENSE
+	pack.cmd = pack.cmd
+	publish.cmd = publish.cmd
 EndProjectSection
 EndProject
 Global
