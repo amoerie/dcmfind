@@ -24,8 +24,8 @@ namespace DcmFind
             [Option('r', "recursive", Default = true, HelpText = "Search recursively in nested directories")]
             public bool Recursive { get; set; }
             
-            [Option('l', "limit", Default = 100, HelpText = "Limit results and stop finding after this many results")]
-            public int Limit { get; set; }
+            [Option('l', "limit", HelpText = "Limit results and stop finding after this many results")]
+            public int? Limit { get; set; }
             
             [Option(shortName: 'q', longName: "query", Separator = ',', Required = false, HelpText = "The query that should be applied")]
             public IEnumerable<string>? Query { get; set; }
@@ -118,14 +118,18 @@ namespace DcmFind
             }
         }
         
-        private static IEnumerable<string> Results(IEnumerable<string> files, List<IQuery> queries, int limit)
+        private static IEnumerable<string?> Results(IEnumerable<string> files, List<IQuery> queries, int? limit)
         {
-            return files
+            var results = files
                 .Select(ToDicomFile)
                 .Where(f => f != null && queries.All(q => q.Matches(f.Dataset)))
-                .Take(limit)
                 .Select(f => f?.File?.Name)
                 .Where(fileName => fileName != null);
+
+            if (limit != null)
+                results = results.Take(limit.Value);
+
+            return results;
         }
     }
 }
