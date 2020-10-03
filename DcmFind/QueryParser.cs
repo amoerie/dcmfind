@@ -28,13 +28,13 @@ namespace DcmFind
             }
 
             var @operator = matchedOperator.Operator;
-            var dicomTagAsString = queryAsString.Substring(0, matchedOperator.Index);
+            var dicomTagAsString = queryAsString.Substring(0, matchedOperator.Index).Trim();
             if (!DicomTagParser.TryParse(dicomTagAsString, out var dicomTag) || dicomTag == null)
             {
                 return false;
             }
 
-            var queryValue = queryAsString.Substring(matchedOperator.Index + matchedOperator.Operator.Length);
+            var queryValue = queryAsString.Substring(matchedOperator.Index + matchedOperator.Operator.Length).Trim();
 
             switch (@operator)
             {
