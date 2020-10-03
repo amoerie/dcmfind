@@ -61,6 +61,61 @@ namespace DcmFind.Tests
             }
         }
 
+        public class TestsForNotEqualsQuery : TestsForQuery
+        {
+            [Fact]
+            public void ShouldNotMatchWhenValuesAreEqual()
+            {
+                var query = new NotEqualsQuery(DicomTag.AccessionNumber, "Pineapple");
+
+                query.Matches(_dicomDataset).Should().BeFalse();
+            }
+            
+            [Fact]
+            public void ShouldMatchWhenValuesAreNotEqual()
+            {
+                var query = new NotEqualsQuery(DicomTag.AccessionNumber, "Pineapple2");
+
+                query.Matches(_dicomDataset).Should().BeTrue();
+            }
+            
+            [Fact]
+            public void ShouldMatchWhenDicomTagIsNotPresent()
+            {
+                var query = new NotEqualsQuery(DicomTag.AccessionNumber, "Pineapple");
+
+                _dicomDataset.Clear();
+                
+                query.Matches(_dicomDataset).Should().BeTrue();
+            }
+            
+            [Theory]
+            [InlineData("%apple")]
+            [InlineData("%Apple")]
+            [InlineData("Pine%")]
+            [InlineData("pine%")]
+            [InlineData("Pine%apple")]
+            public void ShouldNotMatchWhenValuesMatchesWildcardInBeginning(string value)
+            {
+                var query = new NotEqualsQuery(DicomTag.AccessionNumber, value);
+
+                query.Matches(_dicomDataset).Should().BeFalse();
+            }
+            
+            [Theory]
+            [InlineData("%banana")]
+            [InlineData("%Banana")]
+            [InlineData("Banana%")]
+            [InlineData("bana%")]
+            [InlineData("Bana%na")]
+            public void ShouldMatchWhenValuesDoesNotMatchWildcard(string value)
+            {
+                var query = new NotEqualsQuery(DicomTag.AccessionNumber, value);
+
+                query.Matches(_dicomDataset).Should().BeTrue();
+            }
+        }
+
         public class TestsForLowerThanQuery : TestsForQuery
         {
             [Fact]

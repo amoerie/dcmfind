@@ -27,7 +27,7 @@ namespace DcmFind
             [Option('l', "limit", Default = 100, HelpText = "Limit results and stop finding after this many results")]
             public int Limit { get; set; }
             
-            [Option(shortName: 'q', longName: "query", Default = "", Separator = ',', Min = 1, HelpText = "The query that should be applied")]
+            [Option(shortName: 'q', longName: "query", Separator = ',', Required = false, HelpText = "The query that should be applied")]
             public IEnumerable<string>? Query { get; set; }
         }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
@@ -93,7 +93,14 @@ namespace DcmFind
 
         private static IEnumerable<string> Files(string directory, string filePattern, bool recursive)
         {
-            return Directory.EnumerateFiles(directory, filePattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = recursive,
+                MatchCasing = MatchCasing.CaseInsensitive,
+                MatchType = MatchType.Simple,
+            };
+            return Directory.EnumerateFiles(directory, filePattern, enumerationOptions);
         }
 
         private static DicomFile? ToDicomFile(string file)

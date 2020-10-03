@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Dicom;
@@ -7,6 +8,13 @@ namespace DcmFind
 {
     public static class DicomTagParser
     {
+        private static readonly Lazy<IEnumerable<FieldInfo>> DicomTagFields = new Lazy<IEnumerable<FieldInfo>>(
+            () => typeof(DicomTag)
+                .GetFields(BindingFlags.Static | BindingFlags.Public)
+                .Where(f => f.FieldType == typeof(DicomTag))
+                .ToList()
+        );
+
         public static bool TryParse(string dicomTagAsString, out DicomTag? dicomTag)
         {
             try
@@ -17,8 +25,7 @@ namespace DcmFind
                     return true;
                 }
 
-                var field = typeof(DicomTag).GetFields(BindingFlags.Static | BindingFlags.Public)
-                    .Where(f => f.FieldType == typeof(DicomTag))
+                var field = DicomTagFields.Value
                     .FirstOrDefault(f => string.Equals(f.Name, dicomTagAsString));
                 if (field != null)
                 {
@@ -31,7 +38,7 @@ namespace DcmFind
             }
             catch (DicomDataException e)
             {
-                Console.Error.WriteLine($"Invalid DICOM tag in query '{dicomTagAsString}': " + e.Message);
+                Console.Error.WriteLine($"Invalid DICOM tag '{dicomTagAsString}': " + e.Message);
                 Console.Error.WriteLine(e);
                 dicomTag = null;
                 return false;

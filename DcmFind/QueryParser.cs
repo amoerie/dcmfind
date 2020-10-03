@@ -5,7 +5,7 @@ namespace DcmFind
 {
     public static class QueryParser
     {
-        private static readonly string[] SupportedOperators = {"<=", ">=", "=", "<", ">" };
+        private static readonly string[] SupportedOperators = {"<=", ">=", "!=", "=", "<", ">" };
 
         public static bool TryParse(string queryAsString, out IQuery? query)
         {
@@ -40,6 +40,9 @@ namespace DcmFind
             {
                 case "=":
                     query = new EqualsQuery(dicomTag, queryValue);
+                    return true;
+                case "!=":
+                    query = new NotEqualsQuery(dicomTag, queryValue);
                     return true;
                 case "<":
                     query = new LowerThanQuery(dicomTag, queryValue, false);

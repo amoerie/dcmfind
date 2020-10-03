@@ -1,17 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
-    <Title>DICOM Find</Title>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dcmfind</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <Version>1.0.3</Version>
+    <PackageLicenseExpression >MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/amoerie/dcmfind</RepositoryUrl>
     <Authors>Alexander Moerman</Authors>
+    <Title>DICOM Find</Title>
     <PackageProjectUrl>https://github.com/amoerie/dcmfind</PackageProjectUrl>
     <RepositoryUrl>https://github.com/amoerie/dcmfind</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <Version>0.2</Version>
-    <AssemblyVersion>0.2.0</AssemblyVersion>
-    <FileVersion>0.2.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
