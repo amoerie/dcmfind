@@ -1,4 +1,4 @@
-DICOM FIND
+🔍 DICOM FIND
 ----------
 
 Find DICOM files on your disk.
