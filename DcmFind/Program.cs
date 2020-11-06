@@ -66,7 +66,6 @@ namespace DcmFind
                 return;
             }
 
-            
             var files = Files(directory, filePattern, recursive);
             // ReSharper disable PossibleMultipleEnumeration
             if (!files.Any())
@@ -122,7 +121,8 @@ namespace DcmFind
         {
             var results = files
                 .Select(ToDicomFile)
-                .Where(f => f != null && queries.All(q => q.Matches(f.Dataset)))
+                .Where(f => f != null)
+                .Where(f => queries.All(q => q.Matches(f.Dataset)))
                 .Select(f => f?.File?.Name)
                 .Where(fileName => fileName != null);
 

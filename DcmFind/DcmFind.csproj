@@ -11,6 +11,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/amoerie/dcmfind</RepositoryUrl>
     <Authors>Alexander Moerman</Authors>
+    <Title>DICOM Find</Title>
+    <PackageProjectUrl>https://github.com/amoerie/dcmfind</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/amoerie/dcmfind</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
