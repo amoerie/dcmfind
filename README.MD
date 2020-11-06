@@ -4,6 +4,20 @@
 
 Find DICOM files on your disk.
 
+Installation
+------------
+
+```
+    dotnet tool install dcmfind --global
+```
+
+Usage
+-----
+
+```powershell
+    dcmfind --query "AccessionNumber=abc"
+```
+
 Options 
 
 ```
