@@ -18,7 +18,7 @@ namespace DcmFind
             
             public string? Directory { get; set; }
             
-            [Option('f', "filePattern", Default = "*.dcm", HelpText = "Only query files that satisfy this file pattern")]
+            [Option('f', "filePattern", Default = "*.*", HelpText = "Only query files that satisfy this file pattern")]
             public string? FilePattern { get; set; }
             
             [Option('r', "recursive", Default = true, HelpText = "Search recursively in nested directories")]
