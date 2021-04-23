@@ -15,25 +15,25 @@ namespace DcmFind
         public class Options
         {
             [Option('d', "directory", Default = ".", HelpText = "Search for *.dcm files in this directory")]
-            
+
             public string? Directory { get; set; }
-            
+
             [Option('f', "filePattern", Default = "*.*", HelpText = "Only query files that satisfy this file pattern")]
             public string? FilePattern { get; set; }
-            
+
             [Option('r', "recursive", Default = true, HelpText = "Search recursively in nested directories")]
             public bool Recursive { get; set; }
-            
+
             [Option('l', "limit", HelpText = "Limit results and stop finding after this many results")]
             public int? Limit { get; set; }
-            
+
             [Option(shortName: 'q', longName: "query", Separator = ',', Required = false, HelpText = "The query that should be applied")]
             public IEnumerable<string>? Query { get; set; }
         }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
         // ReSharper restore MemberCanBePrivate.Global
         // ReSharper restore ClassNeverInstantiated.Global
-        
+
         public static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args)
@@ -59,7 +59,7 @@ namespace DcmFind
             var limit = options.Limit;
             if (filePattern == null || query == null)
                 return;
-            
+
             if (!Directory.Exists(directory))
             {
                 Console.Error.WriteLine($"Invalid directory: {directory} does not exist");
@@ -86,7 +86,7 @@ namespace DcmFind
                 queries.Add(parsedQuery);
             }
 
-            foreach(var result in Results(files, queries, limit))
+            foreach (var result in Results(files, queries, limit))
                 Console.WriteLine(result);
             // ReSharper restore PossibleMultipleEnumeration
         }
@@ -107,16 +107,18 @@ namespace DcmFind
         {
             try
             {
-                return DicomFile.Open(file);
+                var dicomFile = DicomFile.Open(file);
+
+                if (dicomFile.Format == DicomFileFormat.Unknown) return null;
+
+                return dicomFile;
             }
-            catch (DicomFileException e)
+            catch (DicomFileException)
             {
-                Console.Error.WriteLine($"{file} could not be opened as a DICOM file: " + e.Message);
-                Console.Error.WriteLine(e);
                 return null;
             }
         }
-        
+
         private static IEnumerable<string?> Results(IEnumerable<string> files, List<IQuery> queries, int? limit)
         {
             var results = files
