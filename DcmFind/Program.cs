@@ -105,6 +105,9 @@ namespace DcmFind
 
         private static DicomFile? ToDicomFile(string file)
         {
+            if (string.IsNullOrEmpty(file))
+                return null;
+            
             try
             {
                 var dicomFile = DicomFile.Open(file);
