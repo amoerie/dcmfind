@@ -48,4 +48,5 @@ Query is the only required parameter, and supports the following syntax:
 --query "StudyDate<2020-09-08"
 --query "StudyDate<=2020-09-08"
 --query "AccessionNumber!=abc"
+--query "AccessionNumber!=abc" "AccessionNumber!=def" "(0008,0050)!=ghi"
 ```
