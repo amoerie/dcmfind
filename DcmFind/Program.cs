@@ -27,7 +27,7 @@ namespace DcmFind
             [Option('l', "limit", HelpText = "Limit results and stop finding after this many results")]
             public int? Limit { get; set; }
 
-            [Option(shortName: 'q', longName: "query", Separator = ',', Required = false, HelpText = "The query that should be applied")]
+            [Option(shortName: 'q', longName: "query", Required = false,  HelpText = "The query that should be applied")]
             public IEnumerable<string>? Query { get; set; }
         }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
