@@ -112,6 +112,8 @@ namespace DcmFind
             {
                 var dicomFile = DicomFile.Open(file);
 
+                if (dicomFile == null) return null;
+
                 if (dicomFile.Format == DicomFileFormat.Unknown) return null;
 
                 return dicomFile;
