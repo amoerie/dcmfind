@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Dicom;
+using FellowOakDicom;
 
 namespace DcmFind
 {

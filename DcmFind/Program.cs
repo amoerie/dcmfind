@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandLine;
-using Dicom;
+using FellowOakDicom;
 
 namespace DcmFind
 {
@@ -52,7 +52,7 @@ namespace DcmFind
 
         private static void Query(Options options)
         {
-            var directory = new DirectoryInfo(options.Directory).FullName;
+            var directory = new DirectoryInfo(options.Directory!).FullName;
             var filePattern = options.FilePattern;
             var recursive = options.Recursive;
             var query = options.Query;
@@ -129,7 +129,7 @@ namespace DcmFind
             var results = files
                 .Select(ToDicomFile)
                 .Where(f => f != null)
-                .Where(f => queries.All(q => q.Matches(f.Dataset) || q.Matches(f.FileMetaInfo)))
+                .Where(f => queries.All(q => q.Matches(f!.Dataset) || q.Matches(f.FileMetaInfo)))
                 .Select(f => f?.File?.Name)
                 .Where(fileName => fileName != null);
 
