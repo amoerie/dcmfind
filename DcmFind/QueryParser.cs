@@ -17,8 +17,7 @@ namespace DcmFind
             var matchedOperator = SupportedOperators
                 .Select(o => new { Operator = o, Index = queryAsString.IndexOf(o, StringComparison.OrdinalIgnoreCase)})
                 .Where(match => match.Index != -1)
-                .OrderBy(match => match.Index)
-                .FirstOrDefault();
+                .MinBy(match => match.Index);
             
             if (matchedOperator == null)
             {

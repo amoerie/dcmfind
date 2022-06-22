@@ -28,4 +28,10 @@
     <ProjectReference Include="..\DcmFind\DcmFind.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\*.dcm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
