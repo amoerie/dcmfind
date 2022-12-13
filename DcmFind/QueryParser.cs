@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FellowOakDicom;
 
 namespace DcmFind
 {
@@ -18,17 +19,24 @@ namespace DcmFind
                 .Select(o => new { Operator = o, Index = queryAsString.IndexOf(o, StringComparison.OrdinalIgnoreCase)})
                 .Where(match => match.Index != -1)
                 .MinBy(match => match.Index);
-            
+
+            DicomTag? dicomTag;
             if (matchedOperator == null)
             {
+                if (DicomTagParser.TryParse(queryAsString, out dicomTag) && dicomTag != null)
+                {
+                    query = new ContainsTagQuery(dicomTag!);
+                    return true;
+                }
+                
                 var supportedOperatorsAsString = string.Join(" or ", SupportedOperators.Select(c => $"'{c}'"));
-                Console.Error.WriteLine($"Query '{queryAsString}' does not contain any of the supported operators: {supportedOperatorsAsString}");
+                Console.Error.WriteLine($"Query '{queryAsString}' is not recognized as a DICOM tag and does not contain any of the supported operators: {supportedOperatorsAsString}");
                 return false;
             }
 
             var @operator = matchedOperator.Operator;
             var dicomTagAsString = queryAsString.Substring(0, matchedOperator.Index).Trim();
-            if (!DicomTagParser.TryParse(dicomTagAsString, out var dicomTag) || dicomTag == null)
+            if (!DicomTagParser.TryParse(dicomTagAsString, out dicomTag) || dicomTag == null)
             {
                 return false;
             }

@@ -155,4 +155,19 @@ namespace DcmFind
             return _predicate(dicomDataset);
         }
     }
+    
+    public class ContainsTagQuery: IQuery
+    {
+        private readonly DicomTag _dicomTag;
+
+        public ContainsTagQuery(DicomTag dicomTag)
+        {
+            _dicomTag = dicomTag;
+        }
+        
+        public bool Matches(DicomDataset dicomDataset)
+        {
+            return dicomDataset.Contains(_dicomTag);
+        }
+    }
 }
