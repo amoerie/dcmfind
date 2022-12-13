@@ -4,6 +4,7 @@ using Xunit;
 
 namespace DcmFind.Tests;
 
+[Collection("DcmFind")]
 public class TestsForDicomTagParser
 {
     [Fact]

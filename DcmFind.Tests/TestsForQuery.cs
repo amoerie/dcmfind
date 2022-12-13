@@ -5,6 +5,7 @@ using Xunit;
 
 namespace DcmFind.Tests;
 
+[Collection("DcmFind")]
 public class TestsForQuery
 {
     private readonly DicomDataset _dicomDataset;
