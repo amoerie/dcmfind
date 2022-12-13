@@ -1,142 +1,169 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using CommandLine;
+using System.Threading.Tasks;
 using FellowOakDicom;
+using Spectre.Console;
+using Spectre.Console.Cli;
 
-namespace DcmFind
+namespace DcmFind;
+
+public class Program
 {
-    public static class Program
+    public static async Task<int> Main(string[] args)
     {
-        // ReSharper disable UnusedAutoPropertyAccessor.Global
-        // ReSharper disable MemberCanBePrivate.Global
-        // ReSharper disable ClassNeverInstantiated.Global
-        public class Options
+        var app = new CommandApp<FindCommand>();
+        return await app.RunAsync(args);
+    }
+}
+
+public class FindCommand : AsyncCommand<FindCommand.Settings>
+{
+    public class Settings : CommandSettings
+    {
+        [CommandOption("-d|--directory")]
+        [Description("Search for *.dcm files in this directory")]
+        [DefaultValue(".")]
+        public string? Directory { get; init; }
+
+        [CommandOption("-f|--file-pattern")]
+        [Description("Only query files that satisfy this file pattern")]
+        [DefaultValue("*")]
+        public string? FilePattern { get; init; }
+
+        [CommandOption("-r|--recursive")]
+        [Description("Search recursively in nested directories")]
+        [DefaultValue(true)]
+        public bool? Recursive { get; init; }
+
+        [CommandOption("-l|--limit")]
+        [Description("Limit results and stop finding after this many results")]
+        public int? Limit { get; init; }
+
+        [CommandOption("-q|--query <QUERY>")]
+        [Description("The query that should be applied")]
+        public string[]? Query { get; init; }
+
+        public override ValidationResult Validate()
         {
-            [Option('d', "directory", Default = ".", HelpText = "Search for *.dcm files in this directory")]
-
-            public string? Directory { get; set; }
-
-            [Option('f', "filePattern", Default = "*", HelpText = "Only query files that satisfy this file pattern")]
-            public string? FilePattern { get; set; }
-
-            [Option('r', "recursive", Default = true, HelpText = "Search recursively in nested directories")]
-            public bool Recursive { get; set; }
-
-            [Option('l', "limit", HelpText = "Limit results and stop finding after this many results")]
-            public int? Limit { get; set; }
-
-            [Option(shortName: 'q', longName: "query", Required = false,  HelpText = "The query that should be applied")]
-            public IEnumerable<string>? Query { get; set; }
-        }
-        // ReSharper restore UnusedAutoPropertyAccessor.Global
-        // ReSharper restore MemberCanBePrivate.Global
-        // ReSharper restore ClassNeverInstantiated.Global
-
-        public static void Main(string[] args)
-        {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(Query)
-                .WithNotParsed(Fail);
-        }
-
-        private static void Fail(IEnumerable<Error> errors)
-        {
-            Console.Error.WriteLine("Invalid arguments provided");
-            foreach (var error in errors.Where(e => e.Tag != ErrorType.HelpRequestedError))
+            if (!System.IO.Directory.Exists(Directory))
             {
-                Console.Error.WriteLine(error.ToString());
-            }
-        }
-
-        private static void Query(Options options)
-        {
-            var directory = new DirectoryInfo(options.Directory!).FullName;
-            var filePattern = options.FilePattern;
-            var recursive = options.Recursive;
-            var query = options.Query;
-            var limit = options.Limit;
-            if (filePattern == null || query == null)
-                return;
-
-            if (!Directory.Exists(directory))
-            {
-                Console.Error.WriteLine($"Invalid directory: {directory} does not exist");
-                return;
+                return ValidationResult.Error($"Directory {Directory} does not exist");
             }
 
-            var files = Files(directory, filePattern, recursive);
-            // ReSharper disable PossibleMultipleEnumeration
-            if (!files.Any())
+            foreach (var query in Query ?? Enumerable.Empty<string>())
             {
-                Console.WriteLine($"No files found that match {filePattern} in {directory}");
-                return;
-            }
-
-            var queries = new List<IQuery>();
-            foreach (var q in options.Query ?? Array.Empty<string>())
-            {
-                if (!QueryParser.TryParse(q, out var parsedQuery) || parsedQuery == null)
+                if (!QueryParser.TryParse(query, out _))
                 {
-                    Console.Error.WriteLine($"Invalid query: {query}");
-                    return;
+                    return ValidationResult.Error($"Query {query} could not be parsed");
                 }
 
-                queries.Add(parsedQuery);
+                return base.Validate();
             }
 
-            foreach (var result in Results(files, queries, limit))
-                Console.WriteLine(result);
-            // ReSharper restore PossibleMultipleEnumeration
-        }
-
-        private static IEnumerable<string> Files(string directory, string filePattern, bool recursive)
-        {
-            var enumerationOptions = new EnumerationOptions
+            if (FilePattern == null || string.IsNullOrEmpty(FilePattern))
             {
-                IgnoreInaccessible = true,
-                RecurseSubdirectories = recursive,
-                MatchCasing = MatchCasing.CaseInsensitive,
-                MatchType = MatchType.Simple,
-            };
-            return Directory.EnumerateFiles(directory, filePattern, enumerationOptions);
+                return ValidationResult.Error("File pattern is empty");
+            }
+
+            return base.Validate();
+        }
+    }
+
+    public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
+    {
+        await foreach (var file in FindAsync(settings))
+        {
+            Console.WriteLine(file);
         }
 
-        private static DicomFile? ToDicomFile(string file)
+        return 0;
+    }
+
+    private static async IAsyncEnumerable<string> FindAsync(Settings settings)
+    {
+        var directory = new DirectoryInfo(settings.Directory!).FullName;
+        var filePattern = settings.FilePattern!;
+        var recursive = settings.Recursive ?? true;
+        var query = settings.Query;
+        var limit = settings.Limit ?? int.MaxValue;
+        
+        var files = Files(directory, filePattern, recursive);
+
+        var queries = new List<IQuery>();
+        foreach (var q in settings.Query ?? Array.Empty<string>())
         {
-            if (string.IsNullOrEmpty(file))
-                return null;
+            if (!QueryParser.TryParse(q, out var parsedQuery) || parsedQuery == null)
+            {
+                throw new ArgumentException($"Query cannot be parsed: {query}");
+            }
+
+            queries.Add(parsedQuery);
+        }
+
+
+        int numberOfResults = 0;
+        await foreach(var dicomFile in ResultsAsync(files, queries))
+        {
+            yield return dicomFile.File.Name;
             
-            try
-            {
-                var dicomFile = DicomFile.Open(file);
-
-                if (dicomFile == null) return null;
-
-                if (dicomFile.Format == DicomFileFormat.Unknown) return null;
-
-                return dicomFile;
-            }
-            catch (DicomFileException)
-            {
-                return null;
-            }
+            numberOfResults++;
+            if (numberOfResults >= limit)
+                yield break;
         }
+    }
 
-        private static IEnumerable<string?> Results(IEnumerable<string> files, List<IQuery> queries, int? limit)
+    private static IEnumerable<string> Files(string directory, string filePattern, bool recursive)
+    {
+        var enumerationOptions = new EnumerationOptions
         {
-            var results = files
-                .Select(ToDicomFile)
-                .Where(f => f != null)
-                .Where(f => queries.All(q => q.Matches(f!.Dataset) || q.Matches(f.FileMetaInfo)))
-                .Select(f => f?.File?.Name)
-                .Where(fileName => fileName != null);
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = recursive,
+            MatchCasing = MatchCasing.CaseInsensitive,
+            MatchType = MatchType.Simple,
+        };
+        return Directory.EnumerateFiles(directory, filePattern, enumerationOptions);
+    }
 
-            if (limit != null)
-                results = results.Take(limit.Value);
+    private static async Task<DicomFile?> ToDicomFileAsync(string file)
+    {
+        if (string.IsNullOrEmpty(file))
+            return null;
 
-            return results;
+        try
+        {
+            var dicomFile = await DicomFile.OpenAsync(file);
+
+            if (dicomFile == null) return null;
+
+            if (dicomFile.Format == DicomFileFormat.Unknown) return null;
+
+            return dicomFile;
+        }
+        catch (DicomFileException)
+        {
+            return null;
+        }
+    }
+
+    private static async IAsyncEnumerable<DicomFile> ResultsAsync(IEnumerable<string> files, List<IQuery> queries)
+    {
+        foreach (var file in files)
+        {
+            var dicomFile = await ToDicomFileAsync(file);
+
+            if (dicomFile == null)
+            {
+                continue;
+            }
+
+            if (queries.All(q => q.Matches(dicomFile.Dataset) || q.Matches(dicomFile.FileMetaInfo)))
+            {
+                yield return dicomFile;
+            }
         }
     }
 }

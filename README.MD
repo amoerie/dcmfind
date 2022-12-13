@@ -43,10 +43,11 @@ Query is the only required parameter, and supports the following syntax:
 ```
 --query "(0008,0050)=abc"
 --query "AccessionNumber=abc"
+--query "AccessionNumber"
 --query "StudyDate>=2020-09-08"
 --query "StudyDate>2020-09-08"
 --query "StudyDate<2020-09-08"
 --query "StudyDate<=2020-09-08"
 --query "AccessionNumber!=abc"
---query "AccessionNumber!=abc" "AccessionNumber!=def" "(0008,0050)!=ghi"
+--query "AccessionNumber!=abc" --query "AccessionNumber!=def" --query "(0008,0050)!=ghi"
 ```
