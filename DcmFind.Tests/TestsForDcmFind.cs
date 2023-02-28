@@ -7,8 +7,11 @@ using Xunit.Abstractions;
 
 namespace DcmFind.Tests;
 
+[Collection("DcmFind")]
 public class TestsForDcmFind : IDisposable
 {
+    private readonly TextWriter _originalOut;
+    private readonly TextWriter _originalError;
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly StringBuilder _output;
     private readonly StringBuilder _errorOutput;
@@ -25,12 +28,23 @@ public class TestsForDcmFind : IDisposable
         _outputWriter = new StringWriter(_output);
         _errorOutput = new StringBuilder();
         _errorOutputWriter = new StringWriter(_errorOutput);
+        _originalOut = Console.Out;
+        _originalError = Console.Error;
         Console.SetOut(_outputWriter);
         Console.SetError(_errorOutputWriter);
         
         _testFilesDirectory = new DirectoryInfo("./TestFiles");
         _testFile1 = new FileInfo(Path.Join(_testFilesDirectory.Name, "1.dcm"));
         _testFile2 = new FileInfo(Path.Join(_testFilesDirectory.Name, "2.dcm"));
+    }
+    
+    public void Dispose()
+    {
+        _testOutputHelper.WriteLine(_output.ToString());
+        _outputWriter.Dispose();
+        _errorOutputWriter.Dispose();
+        Console.SetOut(_originalOut);
+        Console.SetError(_originalError);
     }
 
     [Fact]
@@ -88,10 +102,5 @@ public class TestsForDcmFind : IDisposable
     }
     
 
-    public void Dispose()
-    {
-        _testOutputHelper.WriteLine(_output.ToString());
-        _outputWriter.Dispose();
-        _errorOutputWriter.Dispose();
-    }
+
 }

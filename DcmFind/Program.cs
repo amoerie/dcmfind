@@ -20,7 +20,6 @@ public class Program
     }
 }
 
-
 public class FindCommand : AsyncCommand<FindCommand.Settings>
 {
     public class Settings : CommandSettings
