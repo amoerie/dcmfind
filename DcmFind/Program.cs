@@ -151,15 +151,24 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
 
     private static async IAsyncEnumerable<DicomFile> ResultsAsync(IEnumerable<string> files, List<IQuery> queries)
     {
+        var now = DateTime.UtcNow;
         foreach (var file in files)
         {
+            var fileInfo = new FileInfo(file);
+
+            // Exclude files that were created after starting DcmFind
+            if (fileInfo.CreationTimeUtc >= now)
+            {
+                continue;
+            }
+            
             var dicomFile = await ToDicomFileAsync(file);
 
             if (dicomFile == null)
             {
                 continue;
             }
-
+            
             if (queries.All(q => q.Matches(dicomFile.Dataset) || q.Matches(dicomFile.FileMetaInfo)))
             {
                 yield return dicomFile;
