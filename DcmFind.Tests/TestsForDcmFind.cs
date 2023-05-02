@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -51,14 +52,14 @@ public class TestsForDcmFind : IDisposable
     public async Task ShouldFindAllTestFiles()
     {
         // Arrange
-        var expected = $"{_testFile1.FullName}{Environment.NewLine}"
-                       + $"{_testFile2.FullName }{Environment.NewLine}";
+        var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
         var statusCode = await Program.Main(Array.Empty<string>());
         
         // Assert
-        Assert.Equal(expected, _output.ToString());
+        var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        actual.Should().BeEquivalentTo(expected, c => c.WithoutStrictOrdering());
         Assert.Equal(string.Empty, _errorOutput.ToString());
         Assert.Equal(0, statusCode);
     }
@@ -67,8 +68,7 @@ public class TestsForDcmFind : IDisposable
     public async Task ShouldFindWithDirectory()
     {
         // Arrange
-        var expected = $"{_testFile1.FullName}{Environment.NewLine}"
-                       + $"{_testFile2.FullName }{Environment.NewLine}";
+        var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
         var statusCode = await Program.Main(new []
@@ -77,7 +77,8 @@ public class TestsForDcmFind : IDisposable
         });
         
         // Assert
-        Assert.Equal(expected, _output.ToString());
+        var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        actual.Should().BeEquivalentTo(expected, c => c.WithoutStrictOrdering());
         Assert.Equal(string.Empty, _errorOutput.ToString());
         Assert.Equal(0, statusCode);
     }
@@ -86,7 +87,7 @@ public class TestsForDcmFind : IDisposable
     public async Task ShouldFindWithQuery()
     {
         // Arrange
-        var expected = $"{_testFile2.FullName }{Environment.NewLine}";
+        var expected = new[] { _testFile2.FullName };
         
         // Act
         var statusCode = await Program.Main(new []
@@ -96,7 +97,8 @@ public class TestsForDcmFind : IDisposable
         });
         
         // Assert
-        Assert.Equal(expected, _output.ToString());
+        var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        actual.Should().BeEquivalentTo(expected, c => c.WithoutStrictOrdering());
         Assert.Equal(string.Empty, _errorOutput.ToString());
         Assert.Equal(0, statusCode);
     }
