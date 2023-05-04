@@ -7,9 +7,15 @@ Find DICOM files on your disk.
 Installation
 ------------
 
+Recommended
+
 ```
     dotnet tool install dcmfind --global
 ```
+
+Alternative
+
+Download from latest [Github release](https://github.com/amoerie/dcmfind/releases)
 
 Usage
 -----
