@@ -19,6 +19,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="5.1.1" />
-    <PackageReference Include="Spectre.Console.Cli" Version="0.46.0" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.47.0" />
   </ItemGroup>
 </Project>
