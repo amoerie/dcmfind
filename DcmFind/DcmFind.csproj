@@ -16,6 +16,7 @@
     <RepositoryUrl>https://github.com/amoerie/dcmfind</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>Embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="5.1.1" />

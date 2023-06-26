@@ -19,6 +19,7 @@ public class TestsForDcmFind : IDisposable
     private readonly StringWriter _outputWriter;
     private readonly StringWriter _errorOutputWriter;
     private readonly DirectoryInfo _testFilesDirectory;
+    private readonly FileInfo _testFile0;
     private readonly FileInfo _testFile1;
     private readonly FileInfo _testFile2;
 
@@ -35,6 +36,7 @@ public class TestsForDcmFind : IDisposable
         Console.SetError(_errorOutputWriter);
         
         _testFilesDirectory = new DirectoryInfo("./TestFiles");
+        _testFile0 = new FileInfo(Path.Join(_testFilesDirectory.Name, "0.jpg"));
         _testFile1 = new FileInfo(Path.Join(_testFilesDirectory.Name, "1.dcm"));
         _testFile2 = new FileInfo(Path.Join(_testFilesDirectory.Name, "2.dcm"));
     }
@@ -102,7 +104,51 @@ public class TestsForDcmFind : IDisposable
         Assert.Equal(string.Empty, _errorOutput.ToString());
         Assert.Equal(0, statusCode);
     }
-    
 
+    [Fact]
+    public async Task ShouldFindWithQueryWithLimit()
+    {
+        // Arrange
+        var expected = new[] { _testFile2.FullName };
+        
+        // Act
+        var statusCode = await Program.Main(new []
+        {
+            "--directory", _testFilesDirectory.FullName,
+            "--query", "AccessionNumber=CR2022062117111",
+            "--limit", "1",
+        });
+        
+        // Assert
+        var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        actual.Should().BeEquivalentTo(expected, c => c.WithoutStrictOrdering());
+        Assert.Equal(string.Empty, _errorOutput.ToString());
+        Assert.Equal(0, statusCode);
+    }
+
+    [Fact]
+    public async Task ShouldFindWithDirectoryAndProgress()
+    {
+        // Arrange
+        var expected = new[]
+        {
+            $"{_testFile0.FullName}\r{_testFile1.FullName}\r{_testFile2.FullName}\r{_testFile1.FullName}",
+            _testFile2.FullName
+        };
+        
+        // Act
+        var statusCode = await Program.Main(new []
+        {
+            "--directory", _testFilesDirectory.FullName,
+            "--parallelism", "1",
+            "--progress",
+        });
+        
+        // Assert
+        var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        actual.Should().BeEquivalentTo(expected, c => c.WithoutStrictOrdering());
+        Assert.Equal(string.Empty, _errorOutput.ToString());
+        Assert.Equal(0, statusCode);
+    }
 
 }
