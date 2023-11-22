@@ -57,7 +57,7 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
-        var statusCode = await Program.Main(Array.Empty<string>());
+        var statusCode = await new Program().MainAsync(Array.Empty<string>());
         
         // Assert
         var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
@@ -73,7 +73,7 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
-        var statusCode = await Program.Main(new []
+        var statusCode = await new Program().MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName
         });
@@ -92,7 +92,7 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile2.FullName };
         
         // Act
-        var statusCode = await Program.Main(new []
+        var statusCode = await new Program().MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
             "--query", "AccessionNumber=CR2022062117111"
@@ -112,7 +112,7 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile2.FullName };
         
         // Act
-        var statusCode = await Program.Main(new []
+        var statusCode = await new Program().MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
             "--query", "AccessionNumber=CR2022062117111",
@@ -137,7 +137,8 @@ public class TestsForDcmFind : IDisposable
         };
         
         // Act
-        var statusCode = await Program.Main(new []
+        var options = new ProgramOptions(true);
+        var statusCode = await new Program(options).MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
             "--parallelism", "1",
