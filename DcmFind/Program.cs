@@ -12,7 +12,7 @@ using Spectre.Console.Cli;
 
 namespace DcmFind;
 
-public sealed record ProgramOptions(bool IgnoreRedirectedOutput);
+public sealed record ProgramOptions(bool IgnoreRedirectedOutput, int ConsoleWindowWidth);
 
 public class Program
 {
@@ -20,7 +20,7 @@ public class Program
 
     public Program()
     {
-        _options = new ProgramOptions(false);
+        _options = new ProgramOptions(false, Console.WindowWidth);
     }
 
     public Program(ProgramOptions options)
@@ -205,7 +205,7 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
         // Write output to Console task
         var writeOutputTask = Task.Run(async () =>
         {
-            await ConsoleOutputWriter.WriteAsync(consoleOutputChannel.Reader, cancellationToken);
+            await ConsoleOutputWriter.WriteAsync(consoleOutputChannel.Reader, _options, cancellationToken);
         }, cancellationToken);
         
         allTasks.Add(writeOutputTask);

@@ -8,7 +8,7 @@ namespace DcmFind;
 
 public static class ConsoleOutputWriter
 {
-    public static async Task WriteAsync(ChannelReader<ConsoleOutput> input, CancellationToken cancellationToken)
+    public static async Task WriteAsync(ChannelReader<ConsoleOutput> input, ProgramOptions options, CancellationToken cancellationToken)
     {
         try
         {
@@ -20,6 +20,13 @@ public static class ConsoleOutputWriter
                 while (input.TryRead(out var current))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    if (current.Overwrite && current.StringToWrite.Length > options.ConsoleWindowWidth)
+                    {
+                        current = new ConsoleOutput(
+                            current.StringToWrite.Substring(0, options.ConsoleWindowWidth),
+                            current.Overwrite);
+                    }
 
                     // Overwrite previous string?
                     if (previous is { Overwrite: true })
@@ -41,9 +48,9 @@ public static class ConsoleOutputWriter
                         outputToWrite.Append(current.StringToWrite);
                     }
 
-                    // If we're not going to overwrite this string, immediately append a new line
                     if (!current.Overwrite)
                     {
+                        // If we're not going to overwrite this string, immediately append a new line
                         outputToWrite.Append(Environment.NewLine);
                     }
 
@@ -62,9 +69,7 @@ public static class ConsoleOutputWriter
             // If last output needs to be overwritten, overwrite with empty spaces
             if (previous is { Overwrite: true })
             {
-                // Print carriage return to move cursor back to begin
                 outputToWrite.Append('\r');
-                // Overwrite last content with spaces
                 outputToWrite.Append(' ', previous.Value.StringToWrite.Length);
                 Console.Write(outputToWrite.ToString());
             }

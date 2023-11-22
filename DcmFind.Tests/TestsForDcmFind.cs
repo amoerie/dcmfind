@@ -57,7 +57,8 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
-        var statusCode = await new Program().MainAsync(Array.Empty<string>());
+        var options = new ProgramOptions(false, 400);
+        var statusCode = await new Program(options).MainAsync(Array.Empty<string>());
         
         // Assert
         var actual = _output.ToString().Split(Environment.NewLine, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
@@ -73,7 +74,8 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile1.FullName, _testFile2.FullName };
         
         // Act
-        var statusCode = await new Program().MainAsync(new []
+        var options = new ProgramOptions(false, 400);
+        var statusCode = await new Program(options).MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName
         });
@@ -92,7 +94,8 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile2.FullName };
         
         // Act
-        var statusCode = await new Program().MainAsync(new []
+        var options = new ProgramOptions(false, 400);
+        var statusCode = await new Program(options).MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
             "--query", "AccessionNumber=CR2022062117111"
@@ -112,7 +115,8 @@ public class TestsForDcmFind : IDisposable
         var expected = new[] { _testFile2.FullName };
         
         // Act
-        var statusCode = await new Program().MainAsync(new []
+        var options = new ProgramOptions(false, 400);
+        var statusCode = await new Program(options).MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
             "--query", "AccessionNumber=CR2022062117111",
@@ -137,12 +141,11 @@ public class TestsForDcmFind : IDisposable
         };
         
         // Act
-        var options = new ProgramOptions(true);
+        var options = new ProgramOptions(true, 400);
         var statusCode = await new Program(options).MainAsync(new []
         {
             "--directory", _testFilesDirectory.FullName,
-            "--parallelism", "1",
-            "--progress",
+            "--parallelism", "1"
         });
         
         // Assert
