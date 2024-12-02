@@ -19,7 +19,7 @@
     <DebugType>Embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="fo-dicom" Version="5.1.2" />
+    <PackageReference Include="fo-dicom" Version="5.1.3" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.47.0" />
   </ItemGroup>
 </Project>
