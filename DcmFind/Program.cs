@@ -32,7 +32,7 @@ public class Program
     {
         return new Program().MainAsync(args);
     }
-    
+
     public async Task<int> MainAsync(string[] args)
     {
         var app = new CommandApp<FindCommand>();
@@ -114,7 +114,7 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
     }
 
     [SuppressMessage("ReSharper", "AccessToDisposedClosure", Justification = "Disposal only happens after all tasks are completed")]
-    public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
+    protected override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings, CancellationToken cancellationToken)
     {
         var directory = new DirectoryInfo(settings.Directory!).FullName;
         var filePattern = settings.FilePattern!;
@@ -124,9 +124,7 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
         var parallelism = settings.Parallelism ?? 8;
         var progress = settings.NoProgress != true && (_options.IgnoreRedirectedOutput || !Console.IsOutputRedirected);
         var allTasks = new List<Task>();
-        using var cts = new CancellationTokenSource();
-        var cancellationToken = cts.Token;
-        
+
         // Setup channels
         var filesChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(parallelism * 100)
         {
@@ -146,7 +144,7 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
             SingleReader = true,
             AllowSynchronousContinuations = false
         });
-        
+
         // Parse query
         var queries = new List<IQuery>();
         foreach (var q in settings.Query ?? Array.Empty<string>())
@@ -158,10 +156,10 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
 
             queries.Add(parsedQuery);
         }
-        
+
         // Enumerate files
         var fileEnumeratorTask = Task.Run(
-            async () => await FileEnumerator.EnumerateAsync(filesChannel.Writer, directory, filePattern, recursive, cancellationToken), 
+            async () => await FileEnumerator.EnumerateAsync(filesChannel.Writer, directory, filePattern, recursive, cancellationToken),
             cancellationToken
         );
         allTasks.Add(fileEnumeratorTask);
@@ -174,15 +172,16 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
                 async () => await DicomFileMatcher.MatchAsync(
                     filesChannel.Reader,
                     matchedFilesChannel.Writer,
-                    progress, 
+                    progress,
                     consoleOutputChannel.Writer,
-                    queries, 
+                    queries,
                     cancellationToken
                 ),
                 cancellationToken);
             matchTasks.Add(matchTask);
             allTasks.Add(matchTask);
         }
+
         var matchingFinishedTask = Task.Run(async () =>
         {
             // Close matched files channel when all matchers have completed
@@ -194,20 +193,17 @@ public class FindCommand : AsyncCommand<FindCommand.Settings>
         // Collect output
         var writeMatchedFilesToOutputTask = Task.Run(
             async () => await MatchedDicomFilesConsoleOutputWriter.WriteAsync(
-                matchedFilesChannel.Reader, 
+                matchedFilesChannel.Reader,
                 consoleOutputChannel.Writer,
                 limit,
                 cancellationToken
             )
-        , cancellationToken);
+            , cancellationToken);
         allTasks.Add(writeMatchedFilesToOutputTask);
 
         // Write output to Console task
-        var writeOutputTask = Task.Run(async () =>
-        {
-            await ConsoleOutputWriter.WriteAsync(consoleOutputChannel.Reader, _options, cancellationToken);
-        }, cancellationToken);
-        
+        var writeOutputTask = Task.Run(async () => { await ConsoleOutputWriter.WriteAsync(consoleOutputChannel.Reader, _options, cancellationToken); }, cancellationToken);
+
         allTasks.Add(writeOutputTask);
 
         await Task.WhenAll(allTasks);
