@@ -8,7 +8,7 @@ namespace DcmFind
     {
         private static readonly string[] SupportedOperators = {"<=", ">=", "!=", "=", "<", ">" };
 
-        public static bool TryParse(string queryAsString, out IQuery? query)
+        public static bool TryParse(string? queryAsString, out IQuery? query)
         {
             query = null;
             

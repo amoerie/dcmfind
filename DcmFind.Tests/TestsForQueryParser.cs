@@ -9,7 +9,7 @@ public class TestsForQueryParser
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void ShouldReturnFalseWhenQueryValueIsNullOrEmpty(string queryValue)
+    public void ShouldReturnFalseWhenQueryValueIsNullOrEmpty(string? queryValue)
     {
         QueryParser.TryParse(queryValue, out _).Should().BeFalse();
     }
